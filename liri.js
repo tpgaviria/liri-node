@@ -1,53 +1,88 @@
+// required files and packages
 require("dotenv").config();
-
 var keys = require("./keys.js");
 var axios = require('axios');
 var Spotify = require('node-spotify-api');
 var spotify = new Spotify(keys.spotify);
 var inquirer = require('inquirer');
 
-var command = process.argv[2];
-var search = process.argv.slice(3).join(' ');
+// run initial prompt
+prompt();
 
+function prompt() {
+    inquirer.prompt([{
+        type: 'input',
+        message: 'What can I do for you?',
+        name: 'task'
+    }]).then(function (inquirerResponse) {
 
+        // splits input into array
+        task = inquirerResponse.task.split(' ');
 
-switch (command) {
-    case 'concert':
-        bandsInTown(search);
-        break;
-    case 'spotify':
-        spotifySearch(search);
-        break;
-    default:
-        console.log("I don't know that command. I have failed you. :(");
-}
+        // sets first word as command
+        var command = task[0];
 
-function bandsInTown(search) {
-    var queryURL = 'https://rest.bandsintown.com/artists/' + search + '/events?app_id=codingbootcamp/';
+        //sets all other words as search
+        var search = task.slice(1).join(' ');
 
-    axios.get(queryURL).then(
-        function (res) {
-            console.log('\nupcoming ' + search + ' tour dates:\n');
-            for (var i = 0; i < res.data.length; i++) {
-                var city = res.data[i].venue.city;
-                var country = res.data[i].venue.country;
-                var venue = res.data[i].venue.name;
-                var date = res.data[i].datetime;
-
-                console.log(city + ', ' + country + ' - ' + venue);
-                console.log(date);
-                console.log('\n---------\n');
-
-
-            }
+        // sets what function is run based on command input
+        switch (command) {
+            case 'concert':
+                bandsInTown(search);
+                break;
+            case 'spotify':
+                spotifySearch(search);
+                break;
+            default:
+                console.log("I don't know that command. I have failed you. :(");
         }
-    )
+
+
+    })
 };
 
+// searches artists tour dates and locations
+function bandsInTown(search) {
+
+    if (!search) {
+        console.log('\nPlease enter a band or artist for results.\n');
+        prompt();
+    } else {
+
+        var queryURL = 'https://rest.bandsintown.com/artists/' + search + '/events?app_id=codingbootcamp/';
+
+        axios.get(queryURL).then(
+            function (res) {
+                console.log(search);
+
+                // 
+                // } else {
+                console.log('\nupcoming ' + search + ' tour dates:\n');
+                for (var i = 0; i < res.data.length; i++) {
+
+                    var city = res.data[i].venue.city;
+                    var country = res.data[i].venue.country;
+                    var venue = res.data[i].venue.name;
+                    var date = res.data[i].datetime;
+
+                    console.log(city + ', ' + country + ' - ' + venue);
+                    console.log(date);
+                    console.log('\n---------\n');
+
+                }
+                // }
+                promptAgain();
+            }
+        )
+    };
+}
+
+// searches artists or songs on spotify
 function spotifySearch(search) {
 
     var searchtype;
 
+    // if no artist or song is entered, default search result will show
     if (!search) {
         search = 'The Sign Ace of Base';
 
@@ -72,14 +107,8 @@ function spotifySearch(search) {
                 console.log('From the album "' + album + '" released ' + date);
                 console.log("Here's a link to the song on Spotify: " + link + "\n");
 
-                inquirer.prompt([
-                    {
-                    type: 'list',
-                    message: 'Would you like to do another search?',
-                    choices: ['yes', 'no'],
-                    name: 'another'
-                    }
-                ])
+                promptAgain();
+
             }
         })
     } else {
@@ -114,17 +143,12 @@ function spotifySearch(search) {
                             console.log('Genre: ' + genres);
                             console.log("Here's a link to the artist on Spotify: " + link + "\n");
 
-                            inquirer.prompt([
-                                {
-                                type: 'list',
-                                message: 'Would you like to do another search?',
-                                choices: ['yes', 'no'],
-                                name: 'another'
-                                }
-                            ])
+                            promptAgain();
+
                         }
                     })
-                }
+                };
+
 
                 if (searchtype === 'a Song?') {
                     spotify.search({
@@ -148,14 +172,8 @@ function spotifySearch(search) {
                             console.log('From the album "' + album + '" released ' + date);
                             console.log("Here's a link to the song on Spotify: " + link + "\n");
 
-                            inquirer.prompt([
-                                {
-                                type: 'list',
-                                message: 'Would you like to do another search?',
-                                choices: ['yes', 'no'],
-                                name: 'another'
-                                }
-                            ])
+                            promptAgain();
+
                         }
                     })
                 }
@@ -165,3 +183,20 @@ function spotifySearch(search) {
     }
 }
 
+function promptAgain() {
+    inquirer.prompt([
+        {
+            type: 'list',
+            message: 'Would you like to do another search?',
+            choices: ['yes', 'no'],
+            name: 'another'
+
+        }]).then(function (inquirerResponse) {
+            if (inquirerResponse.another === 'yes') {
+                prompt();
+            } else if (inquirerResponse.another === 'no') {
+                console.log('Have a great day!');
+                process.exit();
+            }
+        })
+};
