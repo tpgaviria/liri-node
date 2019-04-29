@@ -33,8 +33,14 @@ function prompt() {
             case 'spotify':
                 spotifySearch(search);
                 break;
+            case 'movie':
+                imdbSearch(search);
+                break;
+            case 'exit':
+                process.exit();
             default:
                 console.log("I don't know that command. I have failed you. :(");
+                prompt();
         }
 
 
@@ -76,6 +82,50 @@ function bandsInTown(search) {
         )
     };
 }
+
+
+function imdbSearch(search) {
+    if (!search) {
+        console.log('\nPlease enter a movie title for results.\n');
+        prompt();
+    } else {
+
+        var queryURL = 'http://www.omdbapi.com/?apikey=trilogy&s=' + search;
+
+        axios.get(queryURL).then(
+            function (res) {
+
+                var movie = res.data.Search[0];
+                var title = movie.Title;
+                var year = movie.Year;
+                var rating = 
+
+                console.log(search);
+                console.log(res.data.Search[0]);
+
+                // 
+                // } else {
+                // console.log('\nupcoming ' + search + ' tour dates:\n');
+                // for (var i = 0; i < res.data.length; i++) {
+
+                // var city = res.data[i].venue.city;
+                // var country = res.data[i].venue.country;
+                // var venue = res.data[i].venue.name;
+                // var date = res.data[i].datetime;
+
+                // console.log(city + ', ' + country + ' - ' + venue);
+                // console.log(date);
+                // console.log('\n---------\n');
+                
+                promptAgain();
+            }
+                // }
+        )
+    }
+}
+
+
+
 
 // searches artists or songs on spotify
 function spotifySearch(search) {
