@@ -7,8 +7,9 @@ var spotify = new Spotify(keys.spotify);
 var inquirer = require('inquirer');
 
 var command = process.argv[2];
-var search = process.argv.slice(2).join(" ");
-console.log(process.argv);
+var search = process.argv.slice(3).join(' ');
+
+
 
 switch (command) {
     case 'concert':
@@ -47,51 +48,120 @@ function spotifySearch(search) {
 
     var searchtype;
 
-    inquirer.prompt([
-        {
-            type: 'list',
-            message: 'Is this:',
-            choices: ['an Artist?', new inquirer.Separator('or'), 'a Song?'],
-            name: 'searchtype'
-        }]).then(function (inquirerResponse) {
-            searchtype = inquirerResponse.searchtype;
-            console.log(searchtype);
+    if (!search) {
+        search = 'The Sign Ace of Base';
 
+        spotify.search({
+            type: 'track',
+            query: search,
+            limit: 20
+        }, function (err, data) {
+            if (err) {
+                return console.log('error occurred');
+            } else {
 
+                var track = data.tracks.items[0];
+                var name = track.name;
+                var album = track.album.name;
+                var date = track.album.release_date;
+                var artist = track.artists[0].name;
+                var link = track.external_urls.spotify;
 
-            if (searchtype === 'an Artist?') {
-                spotify.search({
-                    type: 'artist',
-                    query: search,
-                    limit: 20
-                }, function (err, data) {
-                    if (err) {
-                        return console.log('error occurred');
-                    } else {
-                        // console.log(data.artists.items[0]);
-                        console.log(data.artists.items[0].name);
-                        console.log(data.artists.items[0].genres[0]);
-                        console.log(data.artists.items[0].external_urls.spotify);
+                console.log("\nYou didn't give me a song or artist, so here's one I like: ")
+                console.log('\n"' + name + '"' + ' by ' + artist);
+                console.log('From the album "' + album + '" released ' + date);
+                console.log("Here's a link to the song on Spotify: " + link + "\n");
+
+                inquirer.prompt([
+                    {
+                    type: 'list',
+                    message: 'Would you like to do another search?',
+                    choices: ['yes', 'no'],
+                    name: 'another'
                     }
-                })
+                ])
             }
+        })
+    } else {
+        inquirer.prompt([
+            {
+                type: 'list',
+                message: 'Is this:',
+                choices: ['an Artist?', new inquirer.Separator('or'), 'a Song?'],
+                name: 'searchtype'
+            }]).then(function (inquirerResponse) {
+                searchtype = inquirerResponse.searchtype;
+                // console.log(searchtype);
 
-            if (searchtype === 'a Song?') {
-                spotify.search({
-                    type: 'track',
-                    query: search,
-                    limit: 20
-                }, function (err, data) {
-                    if (err) {
-                        return console.log('error occurred');
-                    } else {
-                        console.log(data.tracks.items);
-                        // console.log(data.artists.items[0].name);
-                        // console.log(data.artists.items[0].genres[0]);
-                        // console.log(data.artists.items[0].external_urls.spotify);
-                    }
-                })
-            }
 
-        });
+
+                if (searchtype === 'an Artist?') {
+                    spotify.search({
+                        type: 'artist',
+                        query: search,
+                        limit: 20
+                    }, function (err, data) {
+                        if (err) {
+                            return console.log('error occurred');
+                        } else {
+                            // console.log(data.artists.items[0]);
+                            var artist = data.artists.items[0];
+                            var name = artist.name;
+                            var genres = artist.genres[0] + ', ' + artist.genres[1];
+                            var link = artist.external_urls.spotify;
+
+                            console.log('\n' + name);
+                            console.log('Genre: ' + genres);
+                            console.log("Here's a link to the artist on Spotify: " + link + "\n");
+
+                            inquirer.prompt([
+                                {
+                                type: 'list',
+                                message: 'Would you like to do another search?',
+                                choices: ['yes', 'no'],
+                                name: 'another'
+                                }
+                            ])
+                        }
+                    })
+                }
+
+                if (searchtype === 'a Song?') {
+                    spotify.search({
+                        type: 'track',
+                        query: search,
+                        limit: 20
+                    }, function (err, data) {
+                        if (err) {
+                            return console.log('error occurred');
+                        } else {
+
+                            var track = data.tracks.items[0];
+                            var name = track.name;
+                            var album = track.album.name;
+                            var date = track.album.release_date;
+                            var artist = track.artists[0].name;
+                            var link = track.external_urls.spotify;
+
+
+                            console.log('\n"' + name + '"' + ' by ' + artist);
+                            console.log('From the album "' + album + '" released ' + date);
+                            console.log("Here's a link to the song on Spotify: " + link + "\n");
+
+                            inquirer.prompt([
+                                {
+                                type: 'list',
+                                message: 'Would you like to do another search?',
+                                choices: ['yes', 'no'],
+                                name: 'another'
+                                }
+                            ])
+                        }
+                    })
+                }
+
+
+            });
+    }
 }
+
