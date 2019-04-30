@@ -19,6 +19,9 @@
   "homepage": "https://github.com/tpgaviria/liri-node#readme",
   "dependencies": {
     "axios": "^0.18.0",
+    "boxen": "^3.1.0",
+    "cfonts": "^2.4.2",
+    "chalk": "^2.4.2",
     "dotenv": "^7.0.0",
     "inquirer": "^6.3.1",
     "moment": "^2.24.0",
