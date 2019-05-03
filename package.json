@@ -20,11 +20,13 @@
   "dependencies": {
     "axios": "^0.18.0",
     "boxen": "^3.1.0",
+    "center-align": "^1.0.1",
     "cfonts": "^2.4.2",
     "chalk": "^2.4.2",
     "dotenv": "^7.0.0",
     "inquirer": "^6.3.1",
     "moment": "^2.24.0",
-    "node-spotify-api": "^1.1.1"
+    "node-spotify-api": "^1.1.1",
+    "wordwrap": "^1.0.0"
   }
 }
