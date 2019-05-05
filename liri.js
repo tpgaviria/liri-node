@@ -8,30 +8,32 @@ var inquirer = require('inquirer');
 var boxen = require('boxen');
 var fs = require('fs');
 var CFonts = require('cfonts');
-var chalk = require('chalk');
 var wrap = require('wordwrap')(70);
+var moment = require('moment');
+var Table = require('cli-table');
 
 
-
+// global variables
 var command;
 var search;
 var task;
 var doWhat;
 
-// run initial prompt
-
+// logo
 console.log('\n')
 CFonts.say('LIRI', { font: 'block', align: 'center', colors: ['white', 'blue'], letterSpacing: 2, space: false });
 CFonts.say('Like SIRI but.... not as smart', { font: 'console', align: 'center', letterSpacing: 2, space: false });
 
-
+// run initial prompt
 prompt();
+
 
 function prompt() {
 
     CFonts.say('Give me a command and what you would like to search!\n' +
         'Options: spotify, movie, concert', { font: 'console', align: 'center' });
 
+    // input from user
     inquirer.prompt([{
         type: 'input',
         message: 'What can I do for you?',
@@ -40,14 +42,20 @@ function prompt() {
 
         // splits input into array
         task = inquirerResponse.task.split(' ');
+
+        // first word is command
         command = task[0];
+
+        // anything after first word is joined as a string and saved as the search
         search = task.slice(1).join(' ');
 
+        // run function using command and search inputs
         doTask(command, search);
 
 
     })
 };
+
 
 function doTask(command, search) {
 
@@ -77,32 +85,51 @@ function doTask(command, search) {
 // searches artists tour dates and locations
 function bandsInTown(search) {
 
+    // if no search is entered, message will appear
     if (!search) {
         CFonts.say('\nPlease enter a band or artist for results.', { font: 'console', align: 'center', space: false });
         prompt();
     } else {
 
+        // enters search into bands in town api url
         var queryURL = 'https://rest.bandsintown.com/artists/' + search + '/events?app_id=codingbootcamp/';
 
         axios.get(queryURL).then(
             function (res) {
-                console.log(search);
 
-                // 
-                // } else {
                 console.log('\nupcoming ' + search + ' tour dates:\n');
+
+                var table = new Table({
+                    head: ['Date', 'City', 'Time', 'Venue']
+                    , colWidths: [25, 25, 10, 30]
+                });
+
                 for (var i = 0; i < res.data.length; i++) {
 
                     var city = res.data[i].venue.city;
                     var country = res.data[i].venue.country;
                     var venue = res.data[i].venue.name;
                     var date = res.data[i].datetime;
+                    var region = res.data[i].venue.region;
 
-                    console.log(city + ', ' + country + ' - ' + venue);
-                    console.log(date);
-                    console.log('\n---------\n');
 
+                    var day = moment(date).format('dddd');
+                    var dateFormat = moment(date).format('MMMM Do, YYYY');
+                    var timeFormat = moment(date).format('h:mma');
+                    // console.log(day);
+                    var wrap = require('wordwrap')(30);
+                    table.push(
+                        [day + '\n' + dateFormat, city + ', ' + region + '\n' + country, timeFormat, wrap(venue)]
+                    );
+
+                    
+                    // console.log(city + ', ' + country + ' - ' + venue);
+                    // // console.log(moment(date, );
+                    // console.log('\n---------\n');
+                    
                 }
+                console.log(table.toString());
+                // console.log(res.data[0].venue);
                 // }
                 promptAgain();
             }
@@ -165,9 +192,7 @@ function spotifySearch(search) {
 
     } else if (search === doWhat) {
         trackSearch(search);
-    } else
-    
-    {
+    } else {
 
 
         inquirer.prompt([
